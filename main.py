@@ -66,7 +66,7 @@ ANNIVERSARY_DAYS = (100, 365, 730, 1000)
     "master_aware",
     "大肥鱼",
     "识别主人 QQ，单独对待，记住关于主人的事，并让这段关系有温度",
-    "3.0.0",
+    "3.1.0",
 )
 class MasterAware(Star):
     """在 LLM 请求里注入身份、记忆与关系状态。"""
@@ -297,7 +297,10 @@ class MasterAware(Star):
             note = note + "\n" + GUARD_TEXT
         req.system_prompt = (req.system_prompt or "") + "\n\n" + note
 
-        head = f"【本条消息来自你的主人 {sender}，称呼「{title}」】"
+        head = (
+            f"【本条消息来自你的主人 {sender}，称呼「{title}」，"
+            f"你们从 {first_seen[:10]} 起认识，今天是第 {days + 1} 天】"
+        )
 
         # 久别重逢
         if bool(self.config.get("absence_enable", True)) and last_seen:
@@ -433,7 +436,7 @@ class MasterAware(Star):
             lines = [
                 "【主人档案】",
                 f"称呼：{self._title()}（当前会用「{self._alias(days)}」）",
-                f"认识：{days} 天" + (f"（{first_seen[:10]} 起的）" if first_seen else ""),
+                f"认识：{days + 1} 天" + (f"（{first_seen[:10]} 起的）" if first_seen else ""),
                 f"最近一次说话：{last_seen[:16] if last_seen else '还没有记录'}",
                 f"记忆：{len(entries)} 条",
             ]
