@@ -66,7 +66,7 @@ ANNIVERSARY_DAYS = (100, 365, 730, 1000)
     "master_aware",
     "大肥鱼",
     "识别主人 QQ，单独对待，记住关于主人的事，并让这段关系有温度",
-    "3.1.0",
+    "3.2.0",
 )
 class MasterAware(Star):
     """在 LLM 请求里注入身份、记忆与关系状态。"""
@@ -427,6 +427,32 @@ class MasterAware(Star):
             yield event.plain_result("\n".join(lines))
             return
 
+        if action == "预览":
+            sender = str(event.get_sender_id())
+            if sender not in self._masters():
+                yield event.plain_result("只有主人能看预览。")
+                return
+            state = self.load_state()
+            first_seen = str(state.get("first_seen") or "")
+            days = self._days_between(first_seen, time.time()) if first_seen else 0
+            title = self._alias(days)
+            pool = self._alias_pool() or [self._title()]
+            lines = [
+                "【注入预览】",
+                f"名单：{', '.join(self._masters())}",
+                f"称呼池：{pool}  →  今天用「{title}」（第 {days + 1} 天，索引 {days % len(pool)}）",
+                f"前缀：",
+                f"【本条消息来自你的主人 {sender}，称呼「{title}」，"
+                f"你们从 {(first_seen[:10] or '（未记录）')} 起认识，今天是第 {days + 1} 天】",
+            ]
+            if bool(self.config.get("absence_enable", True)) and state.get("last_seen"):
+                gap = self._days_between(str(state.get("last_seen")), time.time())
+                lines.append(f"久别：{'会触发（' + str(gap) + ' 天）' if gap >= int(self.config.get('absence_days', 3) or 3) else '不触发'}")
+            lines.append(f"纪念日：{'会触发' if days in ANNIVERSARY_DAYS else '不触发'}")
+            lines.append(f"记忆：{len(self.load_memory())} 条，本轮最多注入 {MAX_INJECT} 条")
+            yield event.plain_result("\n".join(lines))
+            return
+
         if action == "档案":
             state = self.load_state()
             first_seen = str(state.get("first_seen") or "")
@@ -462,5 +488,5 @@ class MasterAware(Star):
             return
 
         yield event.plain_result(
-            "用法：/认主 | /认主 档案 | /认主 记住 <内容> | /认主 忘记 <关键词>"
+            "用法：/认主 | /认主 档案 | /认主 预览 | /认主 记住 <内容> | /认主 忘记 <关键词>"
         )
