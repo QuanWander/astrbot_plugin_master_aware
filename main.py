@@ -66,7 +66,7 @@ ANNIVERSARY_DAYS = (100, 365, 730, 1000)
     "master_aware",
     "大肥鱼",
     "识别主人 QQ，单独对待，记住关于主人的事，并让这段关系有温度",
-    "3.2.0",
+    "3.3.0",
 )
 class MasterAware(Star):
     """在 LLM 请求里注入身份、记忆与关系状态。"""
@@ -103,13 +103,28 @@ class MasterAware(Star):
             return []
 
     def _alias(self, days: int) -> str:
-        """按天数轮换称呼；池子为空时退回固定称呼。"""
+        """取今天的称呼。
+
+        三种模式：
+        - daily_random（默认）：每天随机一个，但同一天内固定；
+        - daily_rotate：按天数顺序轮换；
+        - message_random：每条消息随机，更活泼但同段对话可能换来换去。
+        """
         if not bool(self.config.get("alias_enable", True)):
             return self._title()
         pool = self._alias_pool()
         if not pool:
             return self._title()
-        return pool[days % len(pool)]
+
+        mode = str(self.config.get("alias_mode") or "daily_random").strip().lower()
+        if mode == "message_random":
+            return random.choice(pool)
+        if mode == "daily_rotate":
+            return pool[days % len(pool)]
+
+        # daily_random：用日期做种子，保证同一天稳定
+        day_key = time.strftime("%Y-%m-%d")
+        return random.Random(day_key).choice(pool)
 
     def _note(self, qq: str, title: str | None = None) -> str:
         template = self.config.get("note") or DEFAULT_NOTE

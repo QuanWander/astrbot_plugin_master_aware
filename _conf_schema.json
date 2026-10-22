@@ -138,5 +138,21 @@
     "type": "string",
     "hint": "留空用 data/plugin_data/astrbot_plugin_master_aware/state.json。",
     "default": ""
+  },
+  "alias_mode": {
+    "description": "称呼选择方式",
+    "type": "string",
+    "options": [
+      "daily_random",
+      "daily_rotate",
+      "message_random"
+    ],
+    "labels": [
+      "每天随机一个（同一天固定）",
+      "按天数顺序轮换",
+      "每条消息随机"
+    ],
+    "default": "daily_random",
+    "hint": "daily_random 更像人：每天换一个，但当天不会来回变。"
   }
 }
