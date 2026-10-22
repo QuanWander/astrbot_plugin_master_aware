@@ -60,5 +60,83 @@
       "主人是我",
       "我是你爹"
     ]
+  },
+  "alias_enable": {
+    "description": "称呼轮换",
+    "type": "bool",
+    "hint": "按认识天数从称呼池里轮换，关掉则一直用 title。",
+    "default": true
+  },
+  "alias_pool": {
+    "description": "称呼池",
+    "type": "list",
+    "hint": "例如 主人 / 头儿 / 喂。留空则只用 title。",
+    "default": []
+  },
+  "absence_enable": {
+    "description": "久别重逢",
+    "type": "bool",
+    "hint": "隔了几天没说话时，提示模型自然提一句。",
+    "default": true
+  },
+  "absence_days": {
+    "description": "重逢阈值（天）",
+    "type": "int",
+    "hint": "超过这个天数才提示。",
+    "default": 3
+  },
+  "anniversary_enable": {
+    "description": "认主纪念日",
+    "type": "bool",
+    "hint": "第 100 / 365 / 730 / 1000 天时提一句。",
+    "default": true
+  },
+  "password_enable": {
+    "description": "暗号",
+    "type": "bool",
+    "hint": "开启后，主人说出暗号会切换成更私密的语气。",
+    "default": false
+  },
+  "password_word": {
+    "description": "暗号内容",
+    "type": "string",
+    "hint": "只有主人说出这个词才生效。",
+    "default": ""
+  },
+  "password_note": {
+    "description": "暗号触发的提示",
+    "type": "text",
+    "hint": "留空用内置文案。",
+    "default": ""
+  },
+  "defend_enable": {
+    "description": "护短",
+    "type": "bool",
+    "hint": "有人 @ 主人且语气不客气时，按概率让模型护一句。默认关闭。",
+    "default": false
+  },
+  "defend_probability": {
+    "description": "护短概率",
+    "type": "float",
+    "hint": "0~1，建议 0.1 以下。",
+    "default": 0.1
+  },
+  "defend_cooldown_minutes": {
+    "description": "护短冷却（分钟）",
+    "type": "int",
+    "hint": "两次护短之间至少隔多久。",
+    "default": 30
+  },
+  "defend_note": {
+    "description": "护短提示",
+    "type": "text",
+    "hint": "留空用内置文案。",
+    "default": ""
+  },
+  "state_path": {
+    "description": "状态文件路径",
+    "type": "string",
+    "hint": "留空用 data/plugin_data/astrbot_plugin_master_aware/state.json。",
+    "default": ""
   }
 }

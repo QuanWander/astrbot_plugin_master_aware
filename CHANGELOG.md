@@ -1,3 +1,15 @@
+## 3.0.0 - 2026-10-22
+
+- 新增称呼轮换（`alias_enable` / `alias_pool`）；
+- 新增久别重逢提示（`absence_enable` / `absence_days`）；
+- 新增认主纪念日（第 100 / 365 / 730 / 1000 天）；
+- 新增暗号（`password_enable` / `password_word` / `password_note`），默认关闭；
+- 新增护短（`defend_enable` / `defend_probability` / `defend_cooldown_minutes` / `defend_note`），默认关闭；
+- 新增 `/认主 档案` 指令；
+- 新增 `state.json` 记录首次认识时间、最近互动时间、护短冷却；
+- 时间戳改为毫秒精度，修复同一秒内记忆排序不稳定的问题；
+- 文本检查与 48 个用例的自动化测试。
+
 ## 2.1.0 - 2026-10-22
 
 - 新增「群友冒充纠正」：非主人声称是主人时，注入一条说明，
