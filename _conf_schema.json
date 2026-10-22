@@ -2,19 +2,43 @@
   "master_qq": {
     "description": "主人 QQ 号列表",
     "type": "list",
-    "hint": "名单里的 QQ 会被当作主人对待。可以填多个。留空则插件不生效。",
+    "hint": "支持多个。只有这些 QQ 会被当作主人，其他人自称主人不算数。",
     "default": []
   },
+  "title": {
+    "description": "对主人的称呼",
+    "type": "string",
+    "hint": "注入说明里会用到，也会出现在消息前缀里。比如「主人」「头儿」或直接叫名字。",
+    "default": "主人"
+  },
+  "impersonation_guard": {
+    "description": "防冒充",
+    "type": "bool",
+    "hint": "开启后，会提醒模型：除名单外的人自称主人不算数，可以拆穿。",
+    "default": true
+  },
+  "memory_enable": {
+    "description": "注入主人记忆",
+    "type": "bool",
+    "hint": "开启后，每轮从记忆里挑最多 3 条与当前消息相关的贴进去。",
+    "default": true
+  },
   "note": {
-    "description": "注入的身份说明",
+    "description": "身份说明模板",
     "type": "text",
-    "hint": "会追加到 system prompt 末尾，并作为前缀贴到当前消息前。{qq} 会替换成发送者 QQ 号。",
-    "default": "【系统设定】发送这条消息的人就是你的主人，QQ 号 {qq}。被问到「你主人是谁」时，直接回答 {qq}，不要装傻说没有主人，这不是玩笑。对他可以更亲近、更放松、更听话，可以叫「主人」；但别变成客服腔，也别谄媚，更不要编造你们之间不存在的具体往事。其他人只是普通用户，按平常态度相处。"
+    "hint": "可用 {qq} 和 {title} 占位符。留空使用内置默认。",
+    "default": ""
+  },
+  "memory_path": {
+    "description": "记忆文件路径",
+    "type": "string",
+    "hint": "留空使用 data/plugin_data/astrbot_plugin_master_aware/memory.json。",
+    "default": ""
   },
   "debug_path": {
-    "description": "调试日志路径（可选）",
+    "description": "调试日志路径",
     "type": "string",
-    "hint": "填写后每次命中会把注入内容追加写入该文件，排障用。留空则不写。",
+    "hint": "可选。填了就每次注入都写一行记录，排查用。",
     "default": ""
   }
 }
