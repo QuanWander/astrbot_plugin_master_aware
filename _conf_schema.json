@@ -29,18 +29,6 @@
     "hint": "可用 {qq} 和 {title} 占位符。留空使用内置默认。",
     "default": ""
   },
-  "memory_path": {
-    "description": "记忆文件路径",
-    "type": "string",
-    "hint": "留空使用 data/plugin_data/astrbot_plugin_master_aware/memory.json。",
-    "default": ""
-  },
-  "debug_path": {
-    "description": "调试日志路径",
-    "type": "string",
-    "hint": "可选。填了就每次注入都写一行记录，排查用。",
-    "default": ""
-  },
   "deny_claim": {
     "description": "群友冒充主人时纠正",
     "type": "bool",
@@ -133,12 +121,6 @@
     "hint": "留空用内置文案。",
     "default": ""
   },
-  "state_path": {
-    "description": "状态文件路径",
-    "type": "string",
-    "hint": "留空用 data/plugin_data/astrbot_plugin_master_aware/state.json。",
-    "default": ""
-  },
   "alias_mode": {
     "description": "称呼选择方式",
     "type": "string",
@@ -154,5 +136,11 @@
     ],
     "default": "daily_random",
     "hint": "daily_random 更像人：每天换一个，但当天不会来回变。"
+  },
+  "debug_enable": {
+    "description": "调试日志",
+    "type": "bool",
+    "hint": "开启后把每次注入的内容写到插件数据目录的 debug.log，仅供排查。",
+    "default": false
   }
 }

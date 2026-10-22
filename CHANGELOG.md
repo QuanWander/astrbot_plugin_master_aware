@@ -1,3 +1,13 @@
+## 4.0.0 - 2026-10-22
+
+- 按审核意见重做注入方式：不再修改 `system_prompt`，也不再前插改写用户原始消息，
+  改用官方推荐的 `req.extra_user_content_parts` + `TextPart.mark_as_temp()` 追加临时内容块；
+- 去掉 `memory_path` / `state_path` / `debug_path` 三个自定义路径配置，
+  数据统一存放在 `data/plugin_data/astrbot_plugin_master_aware/`；
+- 调试日志改为 `debug_enable` 开关，写入插件数据目录；
+- 修复每轮改动 system prompt 破坏缓存前缀的问题；
+- 55 个测试用例全部通过。
+
 ## 3.3.1 - 2026-10-22
 
 - 版本号调整（3.3.0 已被 Cloud 的版本台账占用，无法重复提交）；
