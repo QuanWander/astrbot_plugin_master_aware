@@ -7,7 +7,7 @@ desc: >-
   这个插件在每次 LLM 请求前比对发送者 QQ，命中名单就注入身份说明，
   并把提示贴到当前用户消息前面，避免被长 system prompt 末尾和人设里的傲娇话术淹没。
   支持多个主人、自定义说明文案、可选调试日志。
-version: 4.1.0
+version: 4.2.0
 author: 大肥鱼
 repo: https://github.com/QuanWander/astrbot_plugin_master_aware
 astrbot_version: ">=4.17.0"

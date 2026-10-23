@@ -67,13 +67,26 @@ git clone https://github.com/QuanWander/astrbot_plugin_master_aware
 | `impersonation_guard` | bool | 防冒充提示，默认开 |
 | `memory_enable` | bool | 是否注入记忆，默认开 |
 | `note` | text | 身份说明模板，可用 `{qq}` `{title}`，留空用内置 |
-| `memory_path` | string | 记忆文件路径，留空用默认位置 |
-| `debug_path` | string | 可选调试日志 |
+| `deny_claim` | bool | 群友自称主人时注入纠正，默认开 |
+| `claim_keywords` | list | 冒充判定关键词 |
+| `answer_master_question` | bool | 被问「你主人是谁」时给出真实 QQ，默认开 |
+| `question_keywords` | list | 提问判定关键词 |
+| `alias_enable` / `alias_pool` / `alias_mode` | bool / list / string | 称呼轮换及其模式 |
+| `absence_enable` / `absence_days` | bool / int | 久别重逢提示 |
+| `anniversary_enable` | bool | 认主纪念日 |
+| `password_enable` / `password_word` | bool / string | 暗号（默认关） |
+| `defend_enable` / `defend_probability` / `defend_cooldown_minutes` | bool / float / int | 护短（默认关） |
+| `debug_enable` | bool | 调试日志，写入插件数据目录，默认关 |
+
+> 4.0.0 起不再支持自定义数据路径，所有文件固定放在
+> `data/plugin_data/astrbot_plugin_master_aware/`。
 
 ## 指令
 
 ```
 /认主                    查看称呼、名单、记忆条数
+/认主 档案               认识天数、最近一次说话
+/认主 预览               不经过模型，直接看会注入什么
 /认主 记住 他对花生过敏   手动记一条
 /认主 忘记 花生          删除包含关键词的记忆
 ```

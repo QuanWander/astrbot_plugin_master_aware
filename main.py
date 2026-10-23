@@ -80,7 +80,7 @@ ANNIVERSARY_DAYS = (100, 365, 730, 1000)
     "master_aware",
     "大肥鱼",
     "识别主人 QQ，单独对待，记住关于主人的事，并让这段关系有温度",
-    "4.1.0",
+    "4.2.0",
 )
 class MasterAware(Star):
     """在 LLM 请求里追加身份、记忆与关系状态。"""
@@ -93,6 +93,7 @@ class MasterAware(Star):
             / "plugin_data"
             / "astrbot_plugin_master_aware"
         )
+        self._last_state_save = 0.0
 
     # ------------------------------------------------------------------ 配置
     def _masters(self) -> list[str]:
@@ -325,6 +326,9 @@ class MasterAware(Star):
             return
 
         sender = str(event.get_sender_id())
+        # 只接受纯数字 QQ；事件来源里有些是 hash 或平台内部 id，不能拿去比对
+        if not sender.isdigit():
+            return
         if sender not in masters:
             await self._handle_non_master(event, req, sender, masters)
             return
@@ -333,9 +337,11 @@ class MasterAware(Star):
         state = self.load_state()
         first_seen = str(state.get("first_seen") or "")
         last_seen = str(state.get("last_seen") or "")
+        first_seen_written = False
         if not first_seen:
             first_seen = self._now()
             state["first_seen"] = first_seen
+            first_seen_written = True
 
         days = self._days_between(first_seen, now)
         title = self._alias(days)
@@ -381,8 +387,11 @@ class MasterAware(Star):
 
         self._append_part(req, "\n".join(lines))
 
-        state["last_seen"] = self._now()
-        self.save_state(state)
+        # 状态写入节流：60 秒内只落一次盘，避免每条消息都写文件
+        if first_seen_written or time.time() - self._last_state_save >= 60:
+            state["last_seen"] = self._now()
+            self.save_state(state)
+            self._last_state_save = time.time()
 
         logger.info("[master_aware] 主人 %s，称呼「%s」，记忆 %d 条", sender, title, len(picked))
         self._debug(f"=== {sender} ===\n" + "\n".join(lines)[:400])
