@@ -52,6 +52,15 @@ CLAIM_KEYWORDS = [
     "我是你爹",
 ]
 
+QUESTION_KEYWORDS = [
+    "你主人是谁",
+    "谁是你主人",
+    "你主人叫什么",
+    "你主人呢",
+    "你主人是哪位",
+    "你主人什么",
+]
+
 DEFAULT_PASSWORD_NOTE = (
     "主人说了你们之间的暗号。这一轮可以换一种更私密的语气："
     "放松、少戒备，可以撒娇或说心里话，但仍然保持短句、一行一条。"
@@ -71,7 +80,7 @@ ANNIVERSARY_DAYS = (100, 365, 730, 1000)
     "master_aware",
     "大肥鱼",
     "识别主人 QQ，单独对待，记住关于主人的事，并让这段关系有温度",
-    "4.0.0",
+    "4.1.0",
 )
 class MasterAware(Star):
     """在 LLM 请求里追加身份、记忆与关系状态。"""
@@ -143,6 +152,19 @@ class MasterAware(Star):
             return [str(x).strip() for x in raw if str(x).strip()]
         except TypeError:
             return list(CLAIM_KEYWORDS)
+
+    def _question_keywords(self) -> list[str]:
+        raw = self.config.get("question_keywords") or QUESTION_KEYWORDS
+        if isinstance(raw, str):
+            raw = [x.strip() for x in raw.replace("，", ",").split(",")]
+        try:
+            return [str(x).strip() for x in raw if str(x).strip()]
+        except TypeError:
+            return list(QUESTION_KEYWORDS)
+
+    def _question_hit(self, text: str) -> bool:
+        body = str(text or "")
+        return any(word in body for word in self._question_keywords())
 
     def _claim_hit(self, text: str) -> bool:
         body = str(text or "")
@@ -385,6 +407,19 @@ class MasterAware(Star):
             self._append_part(req, note)
             logger.info("[master_aware] %s 声称是主人，已追加纠正说明", sender)
             self._debug(f"=== deny_claim {sender} ===")
+            return
+
+        # 被问到「你主人是谁」：给出事实，别让它编「不在群里」
+        if bool(self.config.get("answer_master_question", True)) and self._question_hit(text):
+            names = "、".join(masters)
+            note = (
+                f"【提示】有人问起你的主人。你的主人是 QQ {names}，"
+                "被问到就直接回答这个 QQ 号；"
+                "不要编造他是否在群里、在哪、在做什么之类的话。"
+            )
+            self._append_part(req, note)
+            logger.info("[master_aware] %s 询问主人，已追加事实说明", sender)
+            self._debug(f"=== ask_master {sender} ===")
             return
 
         # 护短

@@ -142,5 +142,24 @@
     "type": "bool",
     "hint": "开启后把每次注入的内容写到插件数据目录的 debug.log，仅供排查。",
     "default": false
+  },
+  "answer_master_question": {
+    "description": "被问「你主人是谁」时给出事实",
+    "type": "bool",
+    "hint": "开启后，非主人问起你的主人，会注入真实 QQ 号，避免模型编造「主人不在群里」。",
+    "default": true
+  },
+  "question_keywords": {
+    "description": "提问判定关键词",
+    "type": "list",
+    "hint": "消息里出现这些词时，按「在问主人」处理。",
+    "default": [
+      "你主人是谁",
+      "谁是你主人",
+      "你主人叫什么",
+      "你主人呢",
+      "你主人是哪位",
+      "你主人什么"
+    ]
   }
 }
