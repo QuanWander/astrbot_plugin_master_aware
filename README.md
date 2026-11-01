@@ -74,6 +74,9 @@ git clone https://github.com/QuanWander/astrbot_plugin_master_aware
 
 安装后在 **WebUI → 插件 → 认主 → 配置** 里填写主人 QQ 号，重启 AstrBot。
 
+> 需要 **AstrBot >= 4.24.2**：身份说明靠 `TextPart.mark_as_temp()` 只参与本轮请求、不写入会话历史，
+> 这个 API 从 4.24.2 才有。低于该版本时插件会跳过注入（只打一条 warning），避免内容持久化进历史。
+
 ## 配置
 
 | 字段 | 类型 | 说明 |

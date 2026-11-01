@@ -97,7 +97,7 @@ ANNIVERSARY_DAYS = (100, 365, 730, 1000)
     "master_aware",
     "大肥鱼",
     "识别主人 QQ，单独对待，记住关于主人的事，并让这段关系有温度",
-    "4.2.3",
+    "4.2.4",
 )
 class MasterAware(Star):
     """在 LLM 请求里追加身份、记忆与关系状态。"""
@@ -360,8 +360,12 @@ class MasterAware(Star):
         try:
             part = TextPart(text=text)
             mark = getattr(part, "mark_as_temp", None)
-            if callable(mark):
-                part = mark()
+            if not callable(mark):
+                logger.warning(
+                    "[master_aware] 当前 AstrBot 不支持 mark_as_temp，跳过注入，避免内容写入会话历史"
+                )
+                return False
+            part = mark()
             req.extra_user_content_parts.append(part)
             return True
         except Exception as exc:  # pragma: no cover - 防御
