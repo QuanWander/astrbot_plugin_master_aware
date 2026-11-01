@@ -21,6 +21,7 @@ from pathlib import Path
 
 from astrbot.api import AstrBotConfig, logger
 from astrbot.api.event import AstrMessageEvent, filter
+from astrbot.api.message_components import At
 from astrbot.api.provider import ProviderRequest
 from astrbot.api.star import Context, Star, register
 
@@ -96,7 +97,7 @@ ANNIVERSARY_DAYS = (100, 365, 730, 1000)
     "master_aware",
     "大肥鱼",
     "识别主人 QQ，单独对待，记住关于主人的事，并让这段关系有温度",
-    "4.2.2",
+    "4.2.3",
 )
 class MasterAware(Star):
     """在 LLM 请求里追加身份、记忆与关系状态。"""
@@ -509,6 +510,17 @@ class MasterAware(Star):
                 state["defend_last_at"] = time.time()
                 self.save_state(state)
 
+        # 群里被问「主人是谁 / 我是谁」时，回复末尾 @ 主人（不依赖模型输出）
+        if (
+            branch in {"identity", "question"}
+            and bool(self.config.get("mention_master_on_group", True))
+            and str(event.get_group_id() or "").strip()
+        ):
+            try:
+                setattr(event, "_master_aware_mention_qq", masters[0])
+            except Exception:  # pragma: no cover - 防御
+                pass
+
         appended = self._append_part(req, "\n".join(notes))
         logger.info(
             "[master_aware] 非主人 %s 分支=%s 追加=%s 称呼「%s」",
@@ -518,6 +530,23 @@ class MasterAware(Star):
             title,
         )
         self._debug(f"=== 非主人 {sender} branch={branch} appended={appended} ===")
+
+    @filter.on_decorating_result()
+    async def mention_master_in_group(self, event: AstrMessageEvent) -> None:
+        """非主人在群里问起主人时，在最终回复末尾补一个 @ 主人。"""
+        qq = getattr(event, "_master_aware_mention_qq", None)
+        if not qq:
+            return
+        try:
+            result = event.get_result()
+            if result is None or not result.chain:
+                return
+            for comp in result.chain:
+                if isinstance(comp, At) and str(getattr(comp, "qq", "")) == str(qq):
+                    return
+            result.chain.append(At(qq=str(qq)))
+        except Exception as exc:  # pragma: no cover - 防御
+            logger.debug(f"[master_aware] 回复追加@主人失败: {exc}")
 
     # ------------------------------------------------------------------ 指令
     @filter.permission_type(filter.PermissionType.ADMIN)

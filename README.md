@@ -30,6 +30,13 @@ req.extra_user_content_parts.append(part)
 > 4.0.0 之前用的是「追加 system_prompt + 前插 prompt」，已被审核指出会破坏缓存，
 > 现版本已改掉。
 
+## 4.2.3 新增
+
+- **群里 @ 主人**：非主人在群里问「你主人是谁」或「我是谁」时，回复末尾会自动补一个 @ 主人。
+  由插件在回复链里拼接，不依赖模型输出，所以不会漏、也不会被模型改写。
+  由 `mention_master_on_group` 控制（默认开），私聊不生效。
+- 对应 issue #3。
+
 ## 4.2.1 新增
 
 - **非主人兜底身份**：以前只有命中「冒充 / 被问主人 / 护短」才注入说明，普通聊天（发链接、视频、随口一句）
@@ -79,6 +86,7 @@ git clone https://github.com/QuanWander/astrbot_plugin_master_aware
 | `deny_claim` | bool | 群友自称主人时注入纠正，默认开 |
 | `claim_keywords` | list | 冒充判定关键词 |
 | `answer_master_question` | bool | 被问「你主人是谁」时给出真实 QQ，默认开 |
+| `mention_master_on_group` | bool | 群里被问主人时在回复末尾 @ 主人，默认开 |
 | `question_keywords` | list | 提问判定关键词 |
 | `alias_enable` / `alias_pool` / `alias_mode` | bool / list / string | 称呼轮换及其模式 |
 | `absence_enable` / `absence_days` | bool / int | 久别重逢提示 |

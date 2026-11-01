@@ -149,6 +149,12 @@
     "hint": "开启后，非主人问起你的主人，会注入真实 QQ 号，避免模型编造「主人不在群里」。",
     "default": true
   },
+  "mention_master_on_group": {
+    "description": "群里被问主人时 @ 他",
+    "type": "bool",
+    "hint": "非主人在群里问「你主人是谁」或「我是谁」时，在回复末尾自动补一个 @ 主人；私聊不生效。",
+    "default": true
+  },
   "question_keywords": {
     "description": "提问判定关键词",
     "type": "list",
