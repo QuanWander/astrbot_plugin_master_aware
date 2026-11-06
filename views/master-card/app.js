@@ -8,6 +8,8 @@ const els = {
   memoryCount: $("memoryCount"),
   lastSeen: $("lastSeen"),
   presetNow: $("presetNow"),
+  presetChip: $("presetChip"),
+  switches: $("switches"),
   presets: $("presets"),
   memories: $("memories"),
   memHint: $("memHint"),
@@ -41,8 +43,46 @@ async function loadStatus() {
   els.memoryCount.textContent = data.memory_count ?? "—";
   els.lastSeen.textContent = fmtDate(data.last_seen);
   els.presetNow.textContent = `当前：${data.preset || "默认"}`;
+  if (els.presetChip) els.presetChip.textContent = `${data.preset || "默认"}模式`;
+  renderSwitches(data.flags || {});
   for (const btn of els.presets.querySelectorAll("button")) {
     btn.classList.toggle("active", btn.dataset.preset === data.preset);
+  }
+}
+
+const FLAG_LABELS = {
+  impersonation_guard: ["防冒充", "别人自称主人不算数"],
+  memory_enable: ["记忆注入", "每轮挑相关记忆"],
+  alias_enable: ["称呼轮换", "按模式换称呼"],
+  absence_enable: ["久别重逢", "隔几天会提一句"],
+  anniversary_enable: ["纪念日", "第 100/365 天"],
+  defend_enable: ["护短", "有人不客气时护一句"],
+};
+
+function renderSwitches(flags) {
+  els.switches.innerHTML = "";
+  for (const [key, [label, desc]] of Object.entries(FLAG_LABELS)) {
+    const row = document.createElement("label");
+    row.className = "switch-row";
+    const text = document.createElement("span");
+    text.innerHTML = `${label}<em>${desc}</em>`;
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.className = "switch";
+    box.checked = Boolean(flags[key]);
+    box.addEventListener("change", async () => {
+      try {
+        await bridge.apiPost("flags", { [key]: box.checked });
+        toast(`${label}${box.checked ? "已开" : "已关"}`);
+        await loadStatus();
+        await loadPreview();
+      } catch (error) {
+        toast("保存失败：" + error.message, true);
+        box.checked = !box.checked;
+      }
+    });
+    row.append(text, box);
+    els.switches.appendChild(row);
   }
 }
 

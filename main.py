@@ -98,7 +98,7 @@ ANNIVERSARY_DAYS = (100, 365, 730, 1000)
     "master_aware",
     "大肥鱼",
     "识别主人 QQ，单独对待，记住关于主人的事，并让这段关系有温度",
-    "4.4.0",
+    "4.4.1",
 )
 class MasterAware(Star):
     """在 LLM 请求里追加身份、记忆与关系状态。"""
@@ -117,6 +117,7 @@ class MasterAware(Star):
         context.register_web_api("/astrbot_plugin_master_aware/memories/add", self.page_add_memory, ["POST"], "Add memory")
         context.register_web_api("/astrbot_plugin_master_aware/memories/delete", self.page_delete_memory, ["POST"], "Delete memory")
         context.register_web_api("/astrbot_plugin_master_aware/preset", self.page_preset, ["POST"], "Apply preset")
+        context.register_web_api("/astrbot_plugin_master_aware/flags", self.page_flags, ["POST"], "Update flags")
         context.register_web_api("/astrbot_plugin_master_aware/preview", self.page_preview, ["GET"], "Injection preview")
 
     # ------------------------------------------------------------------ 配置
@@ -496,6 +497,25 @@ class MasterAware(Star):
         payload = await request.json(default={})
         name = str(payload.get("preset") or "").strip()
         return json_response({"ok": self.apply_preset(name)})
+
+    async def page_flags(self):
+        payload = await request.json(default={})
+        allowed = (
+            "impersonation_guard",
+            "memory_enable",
+            "alias_enable",
+            "absence_enable",
+            "anniversary_enable",
+            "defend_enable",
+        )
+        updates = {}
+        for key in allowed:
+            if key in payload:
+                updates[key] = bool(payload[key])
+        if updates:
+            self.config.update(updates)
+            self._save_config()
+        return json_response({"ok": True, "flags": {k: bool(self.config.get(k, True)) for k in allowed}})
 
     async def page_preview(self):
         days, _ = self._days_now()

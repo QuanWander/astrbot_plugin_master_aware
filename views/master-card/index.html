@@ -3,17 +3,31 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>认主档案</title>
+    <title>认主档案 · 大肥鱼</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <div class="paper">
+    <div class="sea" aria-hidden="true">
+      <span class="bubble b1"></span><span class="bubble b2"></span><span class="bubble b3"></span>
+      <span class="bubble b4"></span><span class="bubble b5"></span><span class="bubble b6"></span>
+      <span class="fish f1">🐟</span><span class="fish f2">🐟</span>
+    </div>
+
+    <main class="paper">
       <header class="head">
-        <div class="seal">认</div>
-        <div>
-          <p class="kicker">MASTER · 认主</p>
+        <div class="mascot-wrap">
+          <span class="halo"></span>
+          <img class="mascot" src="./logo.png" alt="大肥鱼" />
+          <span class="fish-badge">♡</span>
+        </div>
+        <div class="head-text">
+          <p class="kicker">MASTER · 大肥鱼の小本本</p>
           <h1>认主档案</h1>
-          <p class="sub">她记得谁在跟她说话。</p>
+          <p class="sub">她记得谁在跟她说话，也记得你随口提过的小事。</p>
+          <div class="chips">
+            <span class="chip">🐟 大肥鱼出品</span>
+            <span class="chip chip-pink" id="presetChip">默认模式</span>
+          </div>
         </div>
       </header>
 
@@ -21,31 +35,39 @@
         <div class="identity-main">
           <span class="label">当前主人</span>
           <strong id="masterName">未绑定</strong>
-          <span class="muted" id="masterQq"></span>
+          <span class="muted" id="masterQq">私聊发 /认主 绑定</span>
         </div>
         <div class="stats">
           <div><b id="days">—</b><span>认识天数</span></div>
           <div><b id="memoryCount">—</b><span>记忆</span></div>
           <div><b id="lastSeen">—</b><span>最近说话</span></div>
         </div>
+        <div class="bubble-note">“你是我认下的那个人，不是随便路过的一条鱼。”</div>
       </section>
 
       <section class="card">
         <div class="section-head">
-          <h2>相处模式</h2>
+          <h2><span>✧</span> 相处模式</h2>
           <span class="muted" id="presetNow"></span>
         </div>
         <div class="presets" id="presets">
-          <button data-preset="安静">安静</button>
-          <button data-preset="默认">默认</button>
-          <button data-preset="黏人">黏人</button>
+          <button data-preset="安静"><b>安静</b><small>只认人</small></button>
+          <button data-preset="默认"><b>默认</b><small>防冒充 + 记忆</small></button>
+          <button data-preset="黏人"><b>黏人</b><small>加护短</small></button>
         </div>
-        <p class="hint">安静：只认人；默认：防冒充 + 记忆；黏人：加护短。</p>
       </section>
 
       <section class="card">
         <div class="section-head">
-          <h2>她记得的事</h2>
+          <h2><span>✧</span> 她的开关</h2>
+          <span class="muted">点一下就会写回配置</span>
+        </div>
+        <div class="switches" id="switches"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h2><span>✧</span> 她记得的事</h2>
           <span class="muted" id="memHint"></span>
         </div>
         <div class="add-row">
@@ -55,16 +77,17 @@
         <ul class="memories" id="memories"></ul>
       </section>
 
-      <section class="card">
+      <section class="card preview-card">
         <div class="section-head">
-          <h2>本轮会注入什么</h2>
-          <button id="previewBtn" class="ghost">刷新预览</button>
+          <h2><span>✧</span> 本轮会注入什么</h2>
+          <button id="previewBtn" class="ghost">刷新</button>
         </div>
         <pre class="preview" id="preview">—</pre>
+        <p class="hint">这些内容只参与本轮请求，不写进聊天历史。</p>
       </section>
 
-      <footer class="foot">认主 · 大肥鱼出品</footer>
-    </div>
+      <footer class="foot">🐟 大肥鱼出品 · 认主</footer>
+    </main>
 
     <div id="toast" class="toast" hidden></div>
     <script type="module" src="./app.js"></script>
