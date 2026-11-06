@@ -11,3 +11,4 @@ Thumbs.db
 # 本地调试产物
 *.log
 data/
+_backup/

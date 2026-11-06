@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>认主档案</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="paper">
+      <header class="head">
+        <div class="seal">认</div>
+        <div>
+          <p class="kicker">MASTER · 认主</p>
+          <h1>认主档案</h1>
+          <p class="sub">她记得谁在跟她说话。</p>
+        </div>
+      </header>
+
+      <section class="card identity">
+        <div class="identity-main">
+          <span class="label">当前主人</span>
+          <strong id="masterName">未绑定</strong>
+          <span class="muted" id="masterQq"></span>
+        </div>
+        <div class="stats">
+          <div><b id="days">—</b><span>认识天数</span></div>
+          <div><b id="memoryCount">—</b><span>记忆</span></div>
+          <div><b id="lastSeen">—</b><span>最近说话</span></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h2>相处模式</h2>
+          <span class="muted" id="presetNow"></span>
+        </div>
+        <div class="presets" id="presets">
+          <button data-preset="安静">安静</button>
+          <button data-preset="默认">默认</button>
+          <button data-preset="黏人">黏人</button>
+        </div>
+        <p class="hint">安静：只认人；默认：防冒充 + 记忆；黏人：加护短。</p>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h2>她记得的事</h2>
+          <span class="muted" id="memHint"></span>
+        </div>
+        <div class="add-row">
+          <input id="memInput" type="text" placeholder="记一条关于主人的事…" maxlength="120" />
+          <button id="memAdd">记下</button>
+        </div>
+        <ul class="memories" id="memories"></ul>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h2>本轮会注入什么</h2>
+          <button id="previewBtn" class="ghost">刷新预览</button>
+        </div>
+        <pre class="preview" id="preview">—</pre>
+      </section>
+
+      <footer class="foot">认主 · 大肥鱼出品</footer>
+    </div>
+
+    <div id="toast" class="toast" hidden></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

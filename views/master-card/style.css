@@ -1,0 +1,84 @@
+:root {
+  --ink: #3d2f35;
+  --muted: #8f7f86;
+  --paper: #fffaf4;
+  --line: #ead9cf;
+  --red: #b9535a;
+  --pink: #d9899b;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 26px 18px 50px;
+  background:
+    radial-gradient(900px 500px at 10% 0%, #fbe8ee 0%, transparent 60%),
+    radial-gradient(700px 500px at 100% 20%, #eef1fb 0%, transparent 55%),
+    #f7f1ea;
+  color: var(--ink);
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+}
+.paper { max-width: 780px; margin: 0 auto; }
+.head { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.seal {
+  width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center;
+  background: linear-gradient(145deg, #c45d63, #9e3f49); color: #fff7ef;
+  font-size: 24px; font-family: "STKaiti", "KaiTi", serif;
+  box-shadow: 0 10px 24px rgba(160, 62, 70, .25);
+}
+.kicker { margin: 0; font-size: 10px; letter-spacing: .28em; color: var(--red); }
+h1 { margin: 4px 0 2px; font-size: 26px; font-family: "STKaiti", "KaiTi", serif; letter-spacing: .06em; }
+.sub { margin: 0; color: var(--muted); font-size: 12px; }
+.card {
+  background: rgba(255, 253, 248, .86);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 12px 30px rgba(120, 80, 60, .07);
+}
+.identity { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.identity-main { display: flex; flex-direction: column; gap: 4px; }
+.label { font-size: 10px; letter-spacing: .18em; color: var(--red); }
+.identity strong { font-size: 24px; font-family: "STKaiti", "KaiTi", serif; }
+.muted { color: var(--muted); font-size: 12px; }
+.stats { display: flex; gap: 22px; }
+.stats div { display: flex; flex-direction: column; align-items: flex-end; }
+.stats b { font-size: 20px; font-weight: 600; }
+.stats span { font-size: 10px; color: var(--muted); }
+.section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+h2 { margin: 0; font-size: 14px; letter-spacing: .08em; }
+.presets { display: flex; gap: 8px; flex-wrap: wrap; }
+.presets button, .add-row button, .ghost {
+  border: 1px solid var(--line); background: #fffaf4; color: var(--ink);
+  border-radius: 999px; padding: 8px 16px; cursor: pointer; font: inherit; font-size: 13px;
+}
+.presets button.active { background: linear-gradient(135deg, #c45d63, #d9899b); color: #fff; border-color: transparent; }
+.hint { margin: 10px 0 0; font-size: 11.5px; color: var(--muted); }
+.add-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.add-row input {
+  flex: 1; min-width: 0; padding: 9px 12px; border: 1px solid var(--line);
+  border-radius: 12px; background: #fffdf9; color: var(--ink); font: inherit; font-size: 13px;
+}
+.add-row button { background: var(--red); color: #fff; border-color: transparent; }
+.memories { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; max-height: 320px; overflow: auto; }
+.memories li { display: flex; gap: 10px; align-items: flex-start; padding: 9px 10px; border-radius: 12px; background: #fffaf4; border: 1px solid #f1e4da; }
+.memories .id { color: var(--pink); font-size: 10px; flex: 0 0 auto; margin-top: 2px; }
+.memories .txt { flex: 1; font-size: 13px; line-height: 1.55; }
+.memories .del { border: 0; background: transparent; color: #c07b86; cursor: pointer; font-size: 11px; }
+.empty { color: var(--muted); font-size: 12px; padding: 10px 2px; }
+.preview {
+  margin: 0; padding: 12px 14px; border-radius: 14px; background: #fbf4ec;
+  border: 1px dashed #e5cfc2; font-size: 12px; line-height: 1.65; white-space: pre-wrap;
+  max-height: 280px; overflow: auto; font-family: inherit; color: #5a484e;
+}
+.foot { text-align: center; color: #b4a39f; font-size: 10px; letter-spacing: .2em; margin-top: 22px; }
+.toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  background: #3d2f35; color: #fff8f0; padding: 9px 16px; border-radius: 999px;
+  font-size: 12px; box-shadow: 0 10px 24px rgba(0,0,0,.18);
+}
+.toast[hidden] { display: none; }
+@media (max-width: 560px) {
+  .identity { flex-direction: column; }
+  .stats { justify-content: space-between; }
+  .stats div { align-items: flex-start; }
+}

@@ -20,6 +20,7 @@ import uuid
 from pathlib import Path
 
 from astrbot.api import AstrBotConfig, logger
+from astrbot.api.web import json_response, request
 from astrbot.api.event import AstrMessageEvent, filter
 from astrbot.api.message_components import At
 from astrbot.api.provider import ProviderRequest
@@ -97,7 +98,7 @@ ANNIVERSARY_DAYS = (100, 365, 730, 1000)
     "master_aware",
     "大肥鱼",
     "识别主人 QQ，单独对待，记住关于主人的事，并让这段关系有温度",
-    "4.2.4",
+    "4.4.0",
 )
 class MasterAware(Star):
     """在 LLM 请求里追加身份、记忆与关系状态。"""
@@ -111,6 +112,12 @@ class MasterAware(Star):
             / "astrbot_plugin_master_aware"
         )
         self._last_state_save = 0.0
+        context.register_web_api("/astrbot_plugin_master_aware/status", self.page_status, ["GET"], "Master status")
+        context.register_web_api("/astrbot_plugin_master_aware/memories", self.page_memories, ["GET"], "Master memories")
+        context.register_web_api("/astrbot_plugin_master_aware/memories/add", self.page_add_memory, ["POST"], "Add memory")
+        context.register_web_api("/astrbot_plugin_master_aware/memories/delete", self.page_delete_memory, ["POST"], "Delete memory")
+        context.register_web_api("/astrbot_plugin_master_aware/preset", self.page_preset, ["POST"], "Apply preset")
+        context.register_web_api("/astrbot_plugin_master_aware/preview", self.page_preview, ["GET"], "Injection preview")
 
     # ------------------------------------------------------------------ 配置
     def _masters(self) -> list[str]:
@@ -297,6 +304,65 @@ class MasterAware(Star):
             self.save_memory(kept)
         return removed
 
+    def remove_memory_by_id(self, memory_id: str) -> bool:
+        memory_id = str(memory_id).strip()
+        entries = self.load_memory()
+        kept = [e for e in entries if str(e.get("id")) != memory_id]
+        if len(kept) == len(entries):
+            return False
+        self.save_memory(kept)
+        return True
+
+    def clear_memory(self) -> int:
+        entries = self.load_memory()
+        if entries:
+            self.save_memory([])
+        return len(entries)
+
+    def _save_config(self) -> None:
+        save = getattr(self.config, "save_config", None)
+        if callable(save):
+            save()
+
+    def apply_preset(self, name: str) -> bool:
+        presets = {
+            "安静": {
+                "impersonation_guard": True,
+                "memory_enable": False,
+                "alias_enable": False,
+                "absence_enable": False,
+                "anniversary_enable": False,
+                "defend_enable": False,
+                "password_enable": False,
+            },
+            "默认": {
+                "impersonation_guard": True,
+                "memory_enable": True,
+                "alias_enable": True,
+                "absence_enable": True,
+                "anniversary_enable": True,
+                "defend_enable": False,
+                "password_enable": False,
+            },
+            "黏人": {
+                "impersonation_guard": True,
+                "memory_enable": True,
+                "alias_enable": True,
+                "absence_enable": True,
+                "anniversary_enable": True,
+                "defend_enable": True,
+                "defend_probability": 0.15,
+                "password_enable": False,
+            },
+        }
+        values = presets.get(str(name).strip())
+        if not values:
+            return False
+        self.config.update(values)
+        self.config["preset"] = str(name).strip()
+        self._save_config()
+        return True
+
     def pick_memory(self, text: str, limit: int = MAX_INJECT) -> list[str]:
         """按两字组重叠挑相关记忆；没有命中时退回最近一条。"""
         entries = self.load_memory()
@@ -371,6 +437,79 @@ class MasterAware(Star):
         except Exception as exc:  # pragma: no cover - 防御
             logger.warning(f"[master_aware] 追加内容块失败: {exc}")
             return False
+
+    # ------------------------------------------------------------------ 页面 API
+    def _days_now(self) -> tuple[int, dict]:
+        state = self.load_state()
+        first = str(state.get("first_seen") or "")
+        days = self._days_between(first, time.time()) if first else 0
+        return days, state
+
+    async def page_status(self):
+        days, state = self._days_now()
+        masters = self._masters()
+        entries = self.load_memory()
+        return json_response(
+            {
+                "masters": masters,
+                "title": self._title(),
+                "preset": str(self.config.get("preset") or "默认"),
+                "days": days + 1 if state.get("first_seen") else 0,
+                "first_seen": str(state.get("first_seen") or ""),
+                "last_seen": str(state.get("last_seen") or ""),
+                "memory_count": len(entries),
+                "flags": {
+                    "impersonation_guard": bool(self.config.get("impersonation_guard", True)),
+                    "memory_enable": bool(self.config.get("memory_enable", True)),
+                    "alias_enable": bool(self.config.get("alias_enable", True)),
+                    "absence_enable": bool(self.config.get("absence_enable", True)),
+                    "anniversary_enable": bool(self.config.get("anniversary_enable", True)),
+                    "defend_enable": bool(self.config.get("defend_enable", False)),
+                },
+            }
+        )
+
+    async def page_memories(self):
+        return json_response({"memories": list(reversed(self.load_memory()))})
+
+    async def page_add_memory(self):
+        payload = await request.json(default={})
+        text = str(payload.get("text") or "").strip()
+        if not text:
+            return json_response({"ok": False, "error": "内容为空"})
+        entry = self.add_memory(text)
+        return json_response({"ok": True, "memory": entry})
+
+    async def page_delete_memory(self):
+        payload = await request.json(default={})
+        memory_id = str(payload.get("id") or "").strip()
+        keyword = str(payload.get("keyword") or "").strip()
+        if memory_id:
+            ok = self.remove_memory_by_id(memory_id)
+        elif keyword:
+            ok = bool(self.remove_memory(keyword))
+        else:
+            return json_response({"ok": False, "error": "缺少 id 或关键词"})
+        return json_response({"ok": ok})
+
+    async def page_preset(self):
+        payload = await request.json(default={})
+        name = str(payload.get("preset") or "").strip()
+        return json_response({"ok": self.apply_preset(name)})
+
+    async def page_preview(self):
+        days, _ = self._days_now()
+        masters = self._masters()
+        qq = masters[0] if masters else "（未绑定）"
+        title = self._alias(days)
+        return json_response(
+            {
+                "note": self._note(qq, title),
+                "identity": f"【本条消息来自你的主人 {qq}，称呼「{title}」，今天是第 {days + 1} 天】",
+                "guard": GUARD_TEXT if bool(self.config.get("impersonation_guard", True)) else "",
+                "memory_count": len(self.load_memory()),
+            }
+        )
 
     # ------------------------------------------------------------------ 钩子
     @filter.on_llm_request()
@@ -584,8 +723,74 @@ class MasterAware(Star):
                 f"护短：{'开' if self.config.get('defend_enable', False) else '关'}",
                 f"记忆：{len(entries)} 条"
                 + (f"，最近一条：{entries[-1].get('text')}" if entries else ""),
+                f"模式：{self.config.get('preset') or '默认'}",
             ]
+            if not masters:
+                lines.append("还没认主：管理员私聊发「/认主 绑定」即可。")
             yield event.plain_result("\n".join(lines))
+            return
+
+        if action == "绑定":
+            if event.get_group_id():
+                yield event.plain_result("只能在私聊里绑定，群里不行。")
+                return
+            sender = str(event.get_sender_id())
+            masters = self._masters()
+            if sender in masters:
+                yield event.plain_result(f"已经认过 {sender} 了。")
+                return
+            masters.append(sender)
+            self.config["master_qq"] = masters
+            self._save_config()
+            state = self.load_state()
+            if not state.get("first_seen"):
+                state["first_seen"] = self._now()
+                self.save_state(state)
+            yield event.plain_result(f"认下了。以后我叫你「{self._title()}」，QQ {sender}。")
+            return
+
+        if action == "解绑":
+            if event.get_group_id():
+                yield event.plain_result("只能在私聊里解绑。")
+                return
+            sender = str(event.get_sender_id())
+            masters = [x for x in self._masters() if x != sender]
+            self.config["master_qq"] = masters
+            self._save_config()
+            yield event.plain_result(f"已解除 {sender} 的认主。")
+            return
+
+        if action == "记忆":
+            if rest.startswith("删除 "):
+                memory_id = rest[len("删除 "):].strip()
+                ok = self.remove_memory_by_id(memory_id)
+                yield event.plain_result(f"删掉了 {memory_id}。" if ok else f"没有找到 {memory_id}。")
+                return
+            if rest in ("清空", "全部删除"):
+                count = self.clear_memory()
+                yield event.plain_result(f"清空了 {count} 条记忆。")
+                return
+            entries = self.load_memory()
+            if not entries:
+                yield event.plain_result("还没有记忆。用 /认主 记住 <内容> 记一条。")
+                return
+            lines = ["【记忆】"]
+            for entry in entries[-20:]:
+                lines.append(f"{entry.get('id')} · {entry.get('created_at', '')[:10]} · {str(entry.get('text') or '')[:60]}")
+            if len(entries) > 20:
+                lines.append(f"（只显示最近 20 条，共 {len(entries)} 条）")
+            yield event.plain_result("\n".join(lines))
+            return
+
+        if action == "模式":
+            name = rest.strip()
+            if not name:
+                yield event.plain_result("用法：/认主 模式 安静 | 默认 | 黏人")
+                return
+            if not self.apply_preset(name):
+                yield event.plain_result("可选模式：安静 / 默认 / 黏人")
+                return
+            yield event.plain_result(f"已切换到「{name}」模式。")
             return
 
         if action == "预览":
