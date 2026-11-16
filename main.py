@@ -90,7 +90,7 @@ DEFAULT_DEFEND_NOTE = (
 )
 
 MAX_MEMORY = 100
-MAX_INJECT = 3
+MAX_INJECT = 1
 ANNIVERSARY_DAYS = (100, 365, 730, 1000)
 
 
@@ -98,7 +98,7 @@ ANNIVERSARY_DAYS = (100, 365, 730, 1000)
     "master_aware",
     "大肥鱼",
     "识别主人 QQ，单独对待，记住关于主人的事，并让这段关系有温度",
-    "4.5.0",
+    "4.5.2",
 )
 class MasterAware(Star):
     """在 LLM 请求里追加身份、记忆与关系状态。"""
@@ -126,9 +126,20 @@ class MasterAware(Star):
         if isinstance(raw, str):
             raw = raw.replace("，", ",").replace("\n", ",").split(",")
         try:
-            return [str(x).strip() for x in raw if str(x).strip()]
+            result = [str(x).strip() for x in raw if str(x).strip()]
         except TypeError:
-            return []
+            result = []
+        accounts_file = str(self.config.get("platform_accounts_file") or "").strip()
+        if accounts_file:
+            try:
+                data = json.loads(Path(accounts_file).read_text(encoding="utf-8"))
+                extra = data.get("qq") or []
+                if isinstance(extra, str):
+                    extra = [extra]
+                result += [str(x).strip() for x in extra if str(x).strip()]
+            except (OSError, ValueError, TypeError, AttributeError):
+                pass
+        return list(dict.fromkeys(result))
 
     def _minutes(self, value: str, default: str) -> int:
         raw = str(value or default).strip()
@@ -342,6 +353,14 @@ class MasterAware(Star):
             self.save_memory([])
         return len(entries)
 
+    def add_style_rejection(self, text: str) -> dict:
+        item = {"text": text, "created_at": self._now()}
+        path = self._base / "style_rejections.jsonl"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(item, ensure_ascii=False) + "\n")
+        return item
+
     def _save_config(self) -> None:
         save = getattr(self.config, "save_config", None)
         if callable(save):
@@ -387,7 +406,7 @@ class MasterAware(Star):
         return True
 
     def pick_memory(self, text: str, limit: int = MAX_INJECT) -> list[str]:
-        """按两字组重叠挑相关记忆；没有命中时退回最近一条。"""
+        """按两字组重叠挑相关记忆；没有命中就不注入。"""
         entries = self.load_memory()
         if not entries:
             return []
@@ -401,12 +420,10 @@ class MasterAware(Star):
             if score:
                 scored.append((score, index, body))
 
-        if scored:
-            scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
-            return [body for _, _, body in scored[:limit]]
-
-        body = str(entries[-1].get("text") or "").strip()
-        return [body] if body else []
+        if not scored:
+            return []
+        scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
+        return [body for _, _, body in scored[:limit]]
 
     # ------------------------------------------------------------------ 工具
     @staticmethod
@@ -814,6 +831,14 @@ class MasterAware(Star):
             self.config["master_qq"] = masters
             self._save_config()
             yield event.plain_result(f"已解除 {sender} 的认主。")
+            return
+
+        if action == "这句不像我":
+            if not rest:
+                yield event.plain_result("用法：/认主 这句不像我 <这句话哪里假>")
+                return
+            self.add_style_rejection(rest)
+            yield event.plain_result("记下了，只当反例，不会自动改人格。")
             return
 
         if action == "记忆":
