@@ -98,7 +98,7 @@ ANNIVERSARY_DAYS = (100, 365, 730, 1000)
     "master_aware",
     "大肥鱼",
     "识别主人 QQ，单独对待，记住关于主人的事，并让这段关系有温度",
-    "4.4.1",
+    "4.5.0",
 )
 class MasterAware(Star):
     """在 LLM 请求里追加身份、记忆与关系状态。"""
@@ -129,6 +129,28 @@ class MasterAware(Star):
             return [str(x).strip() for x in raw if str(x).strip()]
         except TypeError:
             return []
+
+    def _minutes(self, value: str, default: str) -> int:
+        raw = str(value or default).strip()
+        try:
+            hour, minute = raw.split(":", 1)
+            return max(0, min(23, int(hour))) * 60 + max(0, min(59, int(minute)))
+        except (ValueError, TypeError):
+            hour, minute = default.split(":", 1)
+            return int(hour) * 60 + int(minute)
+
+    def _in_group_quiet(self, now=None) -> bool:
+        if not bool(self.config.get("group_quiet_enable", False)):
+            return False
+        current = now or time.localtime()
+        minutes = current.tm_hour * 60 + current.tm_min
+        start = self._minutes(str(self.config.get("group_quiet_start") or "23:00"), "23:00")
+        end = self._minutes(str(self.config.get("group_quiet_end") or "07:00"), "07:00")
+        if start == end:
+            return False
+        if start < end:
+            return start <= minutes < end
+        return minutes >= start or minutes < end
 
     def _title(self) -> str:
         return str(self.config.get("title") or "主人").strip() or "主人"
@@ -532,6 +554,20 @@ class MasterAware(Star):
         )
 
     # ------------------------------------------------------------------ 钩子
+    @filter.event_message_type(filter.EventMessageType.ALL, priority=1000)
+    async def group_quiet_guard(self, event: AstrMessageEvent):
+        """群聊夜间免打扰：非 @ / 唤醒词不进入后续流程。"""
+        if not bool(self.config.get("group_quiet_enable", False)):
+            return
+        if not str(event.get_group_id() or "").strip():
+            return
+        if not self._in_group_quiet():
+            return
+        if bool(getattr(event, "is_at_or_wake_command", False)):
+            return
+        event.stop_event()
+        logger.info("[master_aware] 群聊夜间免打扰：忽略一条未 @ 的消息")
+
     @filter.on_llm_request()
     async def inject_identity(
         self, event: AstrMessageEvent, req: ProviderRequest

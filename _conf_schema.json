@@ -179,5 +179,23 @@
       "认识我是谁"
     ],
     "description": "「我是谁」判定关键词（非主人问时明确回答是普通用户）"
+  },
+  "group_quiet_enable": {
+    "description": "群聊夜间免打扰",
+    "type": "bool",
+    "hint": "开启后，夜间群聊只有 @ 或唤醒词才会进入模型；普通群消息直接忽略。私聊不受影响。",
+    "default": false
+  },
+  "group_quiet_start": {
+    "description": "免打扰开始时间",
+    "type": "string",
+    "hint": "24 小时制，例如 23:00。",
+    "default": "23:00"
+  },
+  "group_quiet_end": {
+    "description": "免打扰结束时间",
+    "type": "string",
+    "hint": "24 小时制，例如 07:00。",
+    "default": "07:00"
   }
 }

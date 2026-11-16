@@ -121,6 +121,17 @@ git clone https://github.com/QuanWander/astrbot_plugin_master_aware
 
 插件页新增「认主档案」：认识天数、最近说话、相处模式、记忆增删、注入预览。
 
+
+## 4.5.0 群聊夜间免打扰
+
+配置里新增：
+
+- `group_quiet_enable`：开关，默认关
+- `group_quiet_start`：开始时间，默认 `23:00`
+- `group_quiet_end`：结束时间，默认 `07:00`
+
+开启后，群聊在这个时段里只有 @ 或唤醒词会进入模型；普通群消息直接忽略。私聊不受影响。
+
 ## 指令
 
 ```
