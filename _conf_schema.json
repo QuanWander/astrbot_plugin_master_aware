@@ -197,5 +197,11 @@
     "type": "string",
     "hint": "24 小时制，例如 07:00。",
     "default": "07:00"
+  },
+  "platform_accounts_file": {
+    "description": "平台身份文件",
+    "type": "string",
+    "hint": "可选。指向 companion-data/platform_accounts.json；文件里的 qq 列表会和 master_qq 合并。",
+    "default": ""
   }
 }
