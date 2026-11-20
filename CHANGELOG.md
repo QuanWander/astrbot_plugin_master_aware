@@ -1,3 +1,9 @@
+## Unreleased
+
+- Fix QQ Official OpenID identity injection for both WebSocket and Webhook adapters.
+- Clarify that official bot UIDs can be configured directly in `master_qq`, without a platform identity file.
+- Add regression tests for OpenID matching, impersonation protection, and numeric QQ IDs.
+
 ## 4.6.0 - 2026-11-20
 
 - 新增群聊“只认真 @”守卫：群里只有真正 @ 机器人（或 / 命令）才进入模型；名字、关键词、语义唤醒都不算。

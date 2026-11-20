@@ -1,8 +1,8 @@
 {
   "master_qq": {
-    "description": "主人 QQ 号列表",
+    "description": "主人 QQ 号 / 官方 Bot 用户 ID 列表",
     "type": "list",
-    "hint": "支持多个。只有这些 QQ 会被当作主人，其他人自称主人不算数。",
+    "hint": "支持多个。普通 QQ 填 QQ 号；官方 Bot 填 /sid 返回的 UID（支持含字母的长 ID），不要填 Bot ID、群 ID 或 UMO。可直接在此配置，无需平台身份文件。只有名单里的用户会被当作主人。",
     "default": []
   },
   "title": {
@@ -201,7 +201,7 @@
   "platform_accounts_file": {
     "description": "平台身份文件",
     "type": "string",
-    "hint": "可选。指向 companion-data/platform_accounts.json；文件里的 qq 列表会和 master_qq 合并。",
+    "hint": "可选，无需使用也可直接配置主人列表。填写 AstrBot 进程可访问的 JSON 文件路径；顶层 qq 列表中的 QQ 号或官方 Bot UID 会和 master_qq 合并。建议使用绝对路径，Docker 部署填写容器内路径。",
     "default": ""
   },
   "group_only_at_enable": {

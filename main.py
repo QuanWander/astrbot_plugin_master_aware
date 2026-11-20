@@ -20,11 +20,11 @@ import uuid
 from pathlib import Path
 
 from astrbot.api import AstrBotConfig, logger
-from astrbot.api.web import json_response, request
 from astrbot.api.event import AstrMessageEvent, filter
 from astrbot.api.message_components import At
 from astrbot.api.provider import ProviderRequest
 from astrbot.api.star import Context, Star, register
+from astrbot.api.web import json_response, request
 
 try:  # 官方推荐的内容块类型
     from astrbot.core.agent.message import TextPart
@@ -112,13 +112,48 @@ class MasterAware(Star):
             / "astrbot_plugin_master_aware"
         )
         self._last_state_save = 0.0
-        context.register_web_api("/astrbot_plugin_master_aware/status", self.page_status, ["GET"], "Master status")
-        context.register_web_api("/astrbot_plugin_master_aware/memories", self.page_memories, ["GET"], "Master memories")
-        context.register_web_api("/astrbot_plugin_master_aware/memories/add", self.page_add_memory, ["POST"], "Add memory")
-        context.register_web_api("/astrbot_plugin_master_aware/memories/delete", self.page_delete_memory, ["POST"], "Delete memory")
-        context.register_web_api("/astrbot_plugin_master_aware/preset", self.page_preset, ["POST"], "Apply preset")
-        context.register_web_api("/astrbot_plugin_master_aware/flags", self.page_flags, ["POST"], "Update flags")
-        context.register_web_api("/astrbot_plugin_master_aware/preview", self.page_preview, ["GET"], "Injection preview")
+        context.register_web_api(
+            "/astrbot_plugin_master_aware/status",
+            self.page_status,
+            ["GET"],
+            "Master status",
+        )
+        context.register_web_api(
+            "/astrbot_plugin_master_aware/memories",
+            self.page_memories,
+            ["GET"],
+            "Master memories",
+        )
+        context.register_web_api(
+            "/astrbot_plugin_master_aware/memories/add",
+            self.page_add_memory,
+            ["POST"],
+            "Add memory",
+        )
+        context.register_web_api(
+            "/astrbot_plugin_master_aware/memories/delete",
+            self.page_delete_memory,
+            ["POST"],
+            "Delete memory",
+        )
+        context.register_web_api(
+            "/astrbot_plugin_master_aware/preset",
+            self.page_preset,
+            ["POST"],
+            "Apply preset",
+        )
+        context.register_web_api(
+            "/astrbot_plugin_master_aware/flags",
+            self.page_flags,
+            ["POST"],
+            "Update flags",
+        )
+        context.register_web_api(
+            "/astrbot_plugin_master_aware/preview",
+            self.page_preview,
+            ["GET"],
+            "Injection preview",
+        )
 
     # ------------------------------------------------------------------ 配置
     def _masters(self) -> list[str]:
@@ -155,7 +190,9 @@ class MasterAware(Star):
             return False
         current = now or time.localtime()
         minutes = current.tm_hour * 60 + current.tm_min
-        start = self._minutes(str(self.config.get("group_quiet_start") or "23:00"), "23:00")
+        start = self._minutes(
+            str(self.config.get("group_quiet_start") or "23:00"), "23:00"
+        )
         end = self._minutes(str(self.config.get("group_quiet_end") or "07:00"), "07:00")
         if start == end:
             return False
@@ -309,13 +346,17 @@ class MasterAware(Star):
             logger.warning(f"[master_aware] 读取记忆失败: {exc}")
             return []
         items = data.get("entries", []) if isinstance(data, dict) else []
-        return [x for x in items if isinstance(x, dict) and str(x.get("text") or "").strip()]
+        return [
+            x for x in items if isinstance(x, dict) and str(x.get("text") or "").strip()
+        ]
 
     def save_memory(self, entries: list[dict]) -> None:
         try:
             self._base.mkdir(parents=True, exist_ok=True)
             self._memory_path().write_text(
-                json.dumps({"entries": entries[-MAX_MEMORY:]}, ensure_ascii=False, indent=2),
+                json.dumps(
+                    {"entries": entries[-MAX_MEMORY:]}, ensure_ascii=False, indent=2
+                ),
                 encoding="utf-8",
             )
         except OSError as exc:
@@ -428,7 +469,10 @@ class MasterAware(Star):
     # ------------------------------------------------------------------ 工具
     @staticmethod
     def _now() -> str:
-        return time.strftime("%Y-%m-%d %H:%M:%S") + f".{time.time_ns() % 1_000_000_000 // 1_000_000:03d}"
+        return (
+            time.strftime("%Y-%m-%d %H:%M:%S")
+            + f".{time.time_ns() % 1_000_000_000 // 1_000_000:03d}"
+        )
 
     @staticmethod
     def _parse_time(value: str) -> float | None:
@@ -499,11 +543,15 @@ class MasterAware(Star):
                 "last_seen": str(state.get("last_seen") or ""),
                 "memory_count": len(entries),
                 "flags": {
-                    "impersonation_guard": bool(self.config.get("impersonation_guard", True)),
+                    "impersonation_guard": bool(
+                        self.config.get("impersonation_guard", True)
+                    ),
                     "memory_enable": bool(self.config.get("memory_enable", True)),
                     "alias_enable": bool(self.config.get("alias_enable", True)),
                     "absence_enable": bool(self.config.get("absence_enable", True)),
-                    "anniversary_enable": bool(self.config.get("anniversary_enable", True)),
+                    "anniversary_enable": bool(
+                        self.config.get("anniversary_enable", True)
+                    ),
                     "defend_enable": bool(self.config.get("defend_enable", False)),
                 },
             }
@@ -554,7 +602,9 @@ class MasterAware(Star):
         if updates:
             self.config.update(updates)
             self._save_config()
-        return json_response({"ok": True, "flags": {k: bool(self.config.get(k, True)) for k in allowed}})
+        return json_response(
+            {"ok": True, "flags": {k: bool(self.config.get(k, True)) for k in allowed}}
+        )
 
     async def page_preview(self):
         days, _ = self._days_now()
@@ -565,7 +615,9 @@ class MasterAware(Star):
             {
                 "note": self._note(qq, title),
                 "identity": f"【本条消息来自你的主人 {qq}，称呼「{title}」，今天是第 {days + 1} 天】",
-                "guard": GUARD_TEXT if bool(self.config.get("impersonation_guard", True)) else "",
+                "guard": GUARD_TEXT
+                if bool(self.config.get("impersonation_guard", True))
+                else "",
                 "memory_count": len(self.load_memory()),
             }
         )
@@ -617,9 +669,14 @@ class MasterAware(Star):
         if not masters:
             return
 
-        sender = str(event.get_sender_id())
-        # 只接受纯数字 QQ；事件来源里有些是 hash 或平台内部 id，不能拿去比对
-        if not sender.isdigit():
+        sender = str(event.get_sender_id()).strip()
+        if not sender:
+            return
+        # QQ Official uses OpenIDs instead of numeric QQ IDs.
+        if (
+            event.get_platform_name() not in {"qq_official", "qq_official_webhook"}
+            and not sender.isdigit()
+        ):
             return
         if sender not in masters:
             await self._handle_non_master(event, req, sender, masters)
@@ -662,7 +719,10 @@ class MasterAware(Star):
                 )
 
         # 认主纪念日
-        if bool(self.config.get("anniversary_enable", True)) and days in ANNIVERSARY_DAYS:
+        if (
+            bool(self.config.get("anniversary_enable", True))
+            and days in ANNIVERSARY_DAYS
+        ):
             lines.append(f"【今天是你们认识的第 {days} 天，可以顺口提一句。】")
 
         # 暗号
@@ -679,7 +739,9 @@ class MasterAware(Star):
         if bool(self.config.get("memory_enable", True)):
             picked = self.pick_memory(str(req.prompt or ""))
             if picked:
-                lines.append("【关于主人的已知信息】\n" + "\n".join(f"- {x}" for x in picked))
+                lines.append(
+                    "【关于主人的已知信息】\n" + "\n".join(f"- {x}" for x in picked)
+                )
 
         self._append_part(req, "\n".join(lines))
 
@@ -689,7 +751,9 @@ class MasterAware(Star):
             self.save_state(state)
             self._last_state_save = time.time()
 
-        logger.info("[master_aware] 主人 %s，称呼「%s」，记忆 %d 条", sender, title, len(picked))
+        logger.info(
+            "[master_aware] 主人 %s，称呼「%s」，记忆 %d 条", sender, title, len(picked)
+        )
         self._debug(f"=== {sender} ===\n" + "\n".join(lines)[:400])
 
     async def _handle_non_master(
@@ -716,14 +780,18 @@ class MasterAware(Star):
                 "也不要编造主人是否在群里、在哪、在做什么之类的信息。"
             )
         # 被问「我是谁」
-        elif bool(self.config.get("answer_master_question", True)) and self._identity_hit(text):
+        elif bool(
+            self.config.get("answer_master_question", True)
+        ) and self._identity_hit(text):
             branch = "identity"
             notes.append(
                 f"【提示】ta 在问「我是谁」。ta 是普通用户，不是你的{title}；"
                 f"你的{title}是 QQ {names}。回答时直接说 ta 是普通用户，不要叫 ta「{title}」。"
             )
         # 被问到「你主人是谁」
-        elif bool(self.config.get("answer_master_question", True)) and self._question_hit(text):
+        elif bool(
+            self.config.get("answer_master_question", True)
+        ) and self._question_hit(text):
             branch = "question"
             notes.append(
                 f"【提示】有人问起你的{title}。你的{title}是 QQ {names}，"
@@ -741,9 +809,8 @@ class MasterAware(Star):
                 probability = float(self.config.get("defend_probability", 0.1))
             except (TypeError, ValueError):
                 probability = 0.1
-            if (
-                time.time() - last_at >= cooldown
-                and random.random() < max(0.0, min(1.0, probability))
+            if time.time() - last_at >= cooldown and random.random() < max(
+                0.0, min(1.0, probability)
             ):
                 branch = "defend"
                 notes.append(str(self.config.get("defend_note") or DEFAULT_DEFEND_NOTE))
@@ -843,7 +910,9 @@ class MasterAware(Star):
             if not state.get("first_seen"):
                 state["first_seen"] = self._now()
                 self.save_state(state)
-            yield event.plain_result(f"认下了。以后我叫你「{self._title()}」，QQ {sender}。")
+            yield event.plain_result(
+                f"认下了。以后我叫你「{self._title()}」，QQ {sender}。"
+            )
             return
 
         if action == "解绑":
@@ -867,9 +936,11 @@ class MasterAware(Star):
 
         if action == "记忆":
             if rest.startswith("删除 "):
-                memory_id = rest[len("删除 "):].strip()
+                memory_id = rest[len("删除 ") :].strip()
                 ok = self.remove_memory_by_id(memory_id)
-                yield event.plain_result(f"删掉了 {memory_id}。" if ok else f"没有找到 {memory_id}。")
+                yield event.plain_result(
+                    f"删掉了 {memory_id}。" if ok else f"没有找到 {memory_id}。"
+                )
                 return
             if rest in ("清空", "全部删除"):
                 count = self.clear_memory()
@@ -881,7 +952,9 @@ class MasterAware(Star):
                 return
             lines = ["【记忆】"]
             for entry in entries[-20:]:
-                lines.append(f"{entry.get('id')} · {entry.get('created_at', '')[:10]} · {str(entry.get('text') or '')[:60]}")
+                lines.append(
+                    f"{entry.get('id')} · {entry.get('created_at', '')[:10]} · {str(entry.get('text') or '')[:60]}"
+                )
             if len(entries) > 20:
                 lines.append(f"（只显示最近 20 条，共 {len(entries)} 条）")
             yield event.plain_result("\n".join(lines))
@@ -925,9 +998,15 @@ class MasterAware(Star):
             if bool(self.config.get("absence_enable", True)) and state.get("last_seen"):
                 gap = self._days_between(str(state.get("last_seen")), time.time())
                 need = int(self.config.get("absence_days", 3) or 3)
-                lines.append(f"久别：{'会触发（' + str(gap) + ' 天）' if gap >= need else '不触发'}")
-            lines.append(f"纪念日：{'会触发' if days in ANNIVERSARY_DAYS else '不触发'}")
-            lines.append(f"记忆：{len(self.load_memory())} 条，本轮最多注入 {MAX_INJECT} 条")
+                lines.append(
+                    f"久别：{'会触发（' + str(gap) + ' 天）' if gap >= need else '不触发'}"
+                )
+            lines.append(
+                f"纪念日：{'会触发' if days in ANNIVERSARY_DAYS else '不触发'}"
+            )
+            lines.append(
+                f"记忆：{len(self.load_memory())} 条，本轮最多注入 {MAX_INJECT} 条"
+            )
             yield event.plain_result("\n".join(lines))
             return
 
@@ -940,7 +1019,8 @@ class MasterAware(Star):
             lines = [
                 "【主人档案】",
                 f"称呼：{self._title()}（当前会用「{self._alias(days)}」）",
-                f"认识：{days + 1} 天" + (f"（{first_seen[:10]} 起的）" if first_seen else ""),
+                f"认识：{days + 1} 天"
+                + (f"（{first_seen[:10]} 起的）" if first_seen else ""),
                 f"最近一次说话：{last_seen[:16] if last_seen else '还没有记录'}",
                 f"记忆：{len(entries)} 条",
             ]
@@ -961,7 +1041,9 @@ class MasterAware(Star):
                 return
             removed = self.remove_memory(rest)
             yield event.plain_result(
-                f"删掉了 {removed} 条包含「{rest}」的记忆。" if removed else f"没有找到包含「{rest}」的记忆。"
+                f"删掉了 {removed} 条包含「{rest}」的记忆。"
+                if removed
+                else f"没有找到包含「{rest}」的记忆。"
             )
             return
 
