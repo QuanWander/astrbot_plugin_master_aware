@@ -20,7 +20,7 @@ AstrBot 的模型**看不到发送者的 QQ 号**。所以如果你在人格里�
 
 ```python
 part = TextPart(text=block)
-part = part.mark_as_temp()          # 标记为临时，不写入历史
+part = part.mark_as_temp()  # 标记为临时，不写入历史
 req.extra_user_content_parts.append(part)
 ```
 
@@ -81,7 +81,8 @@ git clone https://github.com/QuanWander/astrbot_plugin_master_aware
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
-| `master_qq` | list | 主人 QQ 号，可多个；只有名单里的会被当作主人 |
+| `master_qq` | list | 主人 QQ 号或官方 Bot 用户 UID，可多个；只有名单里的会被当作主人 |
+| `platform_accounts_file` | string | 可选身份文件路径；顶层 `qq` 列表与 `master_qq` 合并 |
 | `title` | string | 对主人的称呼，默认「主人」 |
 | `impersonation_guard` | bool | 防冒充提示，默认开 |
 | `memory_enable` | bool | 是否注入记忆，默认开 |
@@ -100,6 +101,26 @@ git clone https://github.com/QuanWander/astrbot_plugin_master_aware
 
 > 4.0.0 起不再支持自定义数据路径，所有文件固定放在
 > `data/plugin_data/astrbot_plugin_master_aware/`。
+
+### QQ 官方 Bot 的长 ID
+
+支持 `qq_official` 和 `qq_official_webhook`。在需要使用的群聊或私聊中发送 `/sid`，
+复制返回的 **UID**，直接添加到 WebUI 插件配置的「主人 QQ 号 / 官方 Bot 用户 ID 列表」即可，
+例如 `A1B2C3D4E5F60718293A4B5C6D7E8F90`。**不需要平台身份文件**，该项留空即可。
+不要填写 Bot ID、群 ID、UMO 或普通 QQ 号来代替官方 Bot 返回的 UID。
+ID 按字符串精确匹配，请保留原始大小写；若群聊和私聊返回不同 UID，请分别加入名单。
+
+也可使用 UTF-8 编码的平台身份文件，格式如下：
+
+```json
+{
+  "qq": ["A1B2C3D4E5F60718293A4B5C6D7E8F90"]
+}
+```
+
+将文件路径填入 `platform_accounts_file`，建议使用绝对路径；Docker 部署需填写容器内路径。
+顶层字段仍为 `qq`，不要改成 `qq_official`。文件中的名单会与 `master_qq` 合并。
+其他平台继续保留原有的纯数字 ID 检查。
 
 
 ## 4.4.0 更方便
