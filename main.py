@@ -98,7 +98,7 @@ ANNIVERSARY_DAYS = (100, 365, 730, 1000)
     "master_aware",
     "大肥鱼",
     "识别主人 QQ，单独对待，记住关于主人的事，并让这段关系有温度",
-    "4.5.2",
+    "4.6.0",
 )
 class MasterAware(Star):
     """在 LLM 请求里追加身份、记忆与关系状态。"""
@@ -571,6 +571,30 @@ class MasterAware(Star):
         )
 
     # ------------------------------------------------------------------ 钩子
+    def _is_explicit_at(self, event: AstrMessageEvent) -> bool:
+        self_id = str(event.get_self_id() or "")
+        if not self_id:
+            return False
+        for part in event.get_messages() or []:
+            if isinstance(part, At) and str(getattr(part, "qq", "")) == self_id:
+                return True
+        return False
+
+    @filter.event_message_type(filter.EventMessageType.ALL, priority=1000)
+    async def group_only_at_guard(self, event: AstrMessageEvent):
+        """群聊只认真正的 @，不认名字、语义唤醒或其他插件伪造的唤醒。"""
+        if not bool(self.config.get("group_only_at_enable", False)):
+            return
+        if not str(event.get_group_id() or "").strip():
+            return
+        if self._is_explicit_at(event):
+            return
+        text = str(getattr(event, "message_str", "") or "").strip()
+        if text.startswith("/"):
+            return
+        event.stop_event()
+        logger.debug("[master_aware] 群聊只 @：忽略一条未真正 @ 的消息")
+
     @filter.event_message_type(filter.EventMessageType.ALL, priority=1000)
     async def group_quiet_guard(self, event: AstrMessageEvent):
         """群聊夜间免打扰：非 @ / 唤醒词不进入后续流程。"""
