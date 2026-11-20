@@ -203,5 +203,11 @@
     "type": "string",
     "hint": "可选。指向 companion-data/platform_accounts.json；文件里的 qq 列表会和 master_qq 合并。",
     "default": ""
+  },
+  "group_only_at_enable": {
+    "description": "群聊只认真 @",
+    "type": "bool",
+    "hint": "开启后，群里只有真正 @ 机器人或 / 命令才会进入模型；名字、关键词、语义唤醒都不算。可显著减少无故接话。",
+    "default": false
   }
 }
